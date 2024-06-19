@@ -67,12 +67,8 @@ fn merge<'a>(a: &mut HashMap<&'a BStr, State>, b: &HashMap<&'a BStr, State>) {
     }
 }
 
-fn main() {
+pub fn process_measurements(path: String, disable_output: bool) {
     let cores: usize = std::thread::available_parallelism().unwrap().into();
-    let path = match std::env::args().skip(1).next() {
-        Some(path) => path,
-        None => "measurements.txt".to_owned(),
-    };
     let file = File::open(path).unwrap();
     let mmap = unsafe { MmapOptions::new().map(&file).unwrap() };
 
@@ -104,13 +100,16 @@ fn main() {
 
     let mut all: Vec<_> = state.into_iter().collect();
     all.sort_unstable_by(|a, b| a.0.cmp(&b.0));
-    print!("{{");
-    for (i, (name, state)) in all.into_iter().enumerate() {
-        if i == 0 {
-            print!("{name}={state}");
-        } else {
-            print!(", {name}={state}");
+
+    if !disable_output {
+        print!("{{");
+        for (i, (name, state)) in all.into_iter().enumerate() {
+            if i == 0 {
+                print!("{name}={state}");
+            } else {
+                print!(", {name}={state}");
+            }
         }
+        println!("}}");
     }
-    println!("}}");
 }
